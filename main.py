@@ -7,7 +7,7 @@ import concurrent.futures
 import json
 
 # --- CONFIGURATION ---
-SOURCE_URL = "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/all_extracted_configs.txt"
+SOURCE_URL = "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/V2Ray-Config-By-EbraSha-All-Type.txt"
 OUTPUT_FILE = "sub.txt"
 TOP_N = 40          # Keep top 40 best servers
 TIMEOUT = 2         # 2 seconds max latency
