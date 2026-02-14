@@ -8,8 +8,7 @@ import datetime
 
 # --- CONFIG ---
 SOURCE_URLS = [
-    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/all_extracted_configs.txt",
-    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/base64/mix",
+    "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity",
     "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Sub1.txt"
 ]
 OUTPUT_SUB = "sub.txt"
@@ -48,7 +47,7 @@ HTML_TEMPLATE = """
         <h3>📋 Quick Action</h3>
         <p>Use this link in v2rayNG / v2rayN:</p>
         <code style="display:block; background:#000; padding:10px; border-radius:5px; word-break:break-all;">
-            https://raw.githubusercontent.com/{username}/{repo}/main/sub.txt
+            https://raw.githubusercontent.com/kopyie/v2ray-scanner/refs/heads/main/sub.txt
         </code>
     </div>
 
