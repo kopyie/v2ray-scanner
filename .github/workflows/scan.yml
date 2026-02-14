@@ -1,0 +1,40 @@
+name: V2Ray Auto Scanner
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'    # Run every 30 minutes
+  workflow_dispatch:          # Adds a "Run Now" button for testing
+
+jobs:
+  scan-and-update:
+    runs-on: ubuntu-latest
+    
+    # PERMISSIONS: Critical for saving the results back to the repo
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
+      - name: Run Scanner Script
+        run: |
+          python main.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "Auto-Scanner-Bot"
+          git config --global user.email "bot@github.com"
+          git add sub.txt
+          # The part below checks if there are changes before committing
+          git commit -m "Updated Proxy List" || echo "No changes to commit"
+          git push
