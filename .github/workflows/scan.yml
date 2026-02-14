@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global user.name "Auto-Scanner-Bot"
           git config --global user.email "bot@github.com"
-          git add sub.txt
+          git add sub.txt index.html
           # The part below checks if there are changes before committing
           git commit -m "Updated Proxy List" || echo "No changes to commit"
           git push
