@@ -9,7 +9,8 @@ import datetime
 # --- CONFIG ---
 SOURCE_URLS = [
     "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity",
-    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Sub1.txt"
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Sub1.txt",
+    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/V2Ray-Config-By-EbraSha.txt"
 ]
 OUTPUT_SUB = "sub.txt"
 OUTPUT_HTML = "index.html"
