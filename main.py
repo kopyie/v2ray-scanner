@@ -9,7 +9,7 @@ import json
 # --- CONFIGURATION ---
 SOURCE_URL = "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/V2Ray-Config-By-EbraSha.txt"
 OUTPUT_FILE = "sub.txt"
-TOP_N = 40          # Keep top 40 best servers
+TOP_N = 20          # Keep top 20 best servers
 TIMEOUT = 2         # 2 seconds max latency
 MAX_WORKERS = 100   # Scan 100 servers at the same time
 
