@@ -19,7 +19,8 @@ TIMEOUT = 1.5
 MAX_WORKERS = 50
 
 # --- HTML TEMPLATE ---
-# Added: Javascript for copying, "Copy All" section, and individual copy buttons
+# FIX: All CSS and JS braces are now doubled {{ }} to prevent Python errors.
+# Only {timestamp}, {count}, {all_configs}, {table_rows}, {username}, {repo} remain single.
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -49,23 +50,23 @@ HTML_TEMPLATE = """
         textarea {{ width: 100%; height: 100px; background: #0d1117; color: #8b949e; border: 1px solid #30363d; border-radius: 6px; padding: 10px; box-sizing: border-box; font-family: monospace; font-size: 12px; resize: vertical; }}
     </style>
     <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
+        function copyToClipboard(text) {{
+            navigator.clipboard.writeText(text).then(() => {{
                 alert("Copied to clipboard!");
-            }).catch(err => {
+            }}).catch(err => {{
                 console.error('Failed to copy: ', err);
                 prompt("Copy manually:", text);
-            });
-        }
+            }});
+        }}
         
-        function copyAll() {
+        function copyAll() {{
             var copyText = document.getElementById("all-configs");
             copyText.select();
             copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value).then(() => {
+            navigator.clipboard.writeText(copyText.value).then(() => {{
                 alert("All configs copied!");
-            });
-        }
+            }});
+        }}
     </script>
 </head>
 <body>
@@ -114,7 +115,7 @@ def get_servers():
         try:
             resp = requests.get(url, timeout=10)
             content = resp.text.strip()
-            # Basic Base64 check: decode if it doesn't look like plain vmess:// list
+            # Basic Base64 check
             if "vmess://" not in content and len(content) > 100 and " " not in content:
                 try:
                     content = base64.b64decode(content).decode('utf-8', errors='ignore')
@@ -150,7 +151,7 @@ def main():
     # 1. Get List
     raw_lines = get_servers()
     parsed_servers = []
-    for line in raw_lines[:2000]: # Limit scan candidates
+    for line in raw_lines[:2000]: # Limit scan
         res = parse_config(line)
         if res: parsed_servers.append(res)
     
@@ -169,8 +170,7 @@ def main():
     
     print(f"Found {len(top_proxies)} working servers.")
 
-    # 4. Generate SUB.TXT (Base64)
-    # Extract just the config strings
+    # 4. Generate SUB.TXT
     plain_configs_list = [x[1]['config'] for x in top_proxies]
     final_text_block = "\n".join(plain_configs_list)
     
@@ -178,31 +178,31 @@ def main():
     with open(OUTPUT_SUB, "w") as f:
         f.write(b64_sub)
 
-    # 5. Generate INDEX.HTML (Dashboard)
+    # 5. Generate INDEX.HTML
     table_rows = ""
     for i, (lat, srv) in enumerate(top_proxies):
-        # We assume srv['config'] is a safe string (URL)
-        # Using a simple onclick handler with the string in single quotes
+        # We wrap the config in single quotes for the JS function call
+        config_safe = srv['config'].replace("'", "\\'") 
         table_rows += f"""
         <tr>
             <td>{i+1}</td>
             <td>{srv['ip']}</td>
             <td class="latency">{lat} ms</td>
             <td>
-                <button class="copy-btn" onclick="copyToClipboard('{srv['config']}')">Copy</button>
+                <button class="copy-btn" onclick="copyToClipboard('{config_safe}')">Copy</button>
             </td>
         </tr>
         """
     
     # FILL YOUR GITHUB DETAILS HERE
-    my_username = "kopyie" 
-    my_repo = "v2ray-scanner"
+    my_username = "YOUR_GITHUB_USERNAME" 
+    my_repo = "YOUR_REPO_NAME"
     
     html_content = HTML_TEMPLATE.format(
         timestamp=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         count=len(top_proxies),
         table_rows=table_rows,
-        all_configs=final_text_block,  # This injects the raw codes into the textarea
+        all_configs=final_text_block,
         username=my_username,
         repo=my_repo
     )
