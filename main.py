@@ -71,11 +71,11 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <h1>🚀 Active Server Dashboard</h1>
-    <div class="update-time">Last Updated: {timestamp} (UTC)</div>
+    <div class="update-time">Last Updated: {timestamp} (UTC+6:30)</div>
 
     <div class="card">
         <h3>🔗 Subscription Link</h3>
-        <p>Add this URL to v2rayNG / v2rayN to auto-update:</p>
+        <p>Add this URL to v2box</p>
         <code style="display:block; background:#000; padding:10px; border-radius:5px; word-break:break-all; color:#58a6ff;">
             https://raw.githubusercontent.com/{username}/{repo}/main/sub.txt
         </code>
@@ -198,8 +198,12 @@ def main():
     my_username = "kopyie" 
     my_repo = "v2ray-scanner"
     
+    # Calculate UTC+6:30
+    utc_now = datetime.datetime.utcnow()
+    mmt_now = utc_now + datetime.timedelta(hours=6, minutes=30)
+    
     html_content = HTML_TEMPLATE.format(
-        timestamp=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        timestamp=mmt_now.strftime("%Y-%m-%d %H:%M:%S"),
         count=len(top_proxies),
         table_rows=table_rows,
         all_configs=final_text_block,
