@@ -19,6 +19,7 @@ TIMEOUT = 1.5
 MAX_WORKERS = 50
 
 # --- HTML TEMPLATE ---
+# Added: Javascript for copying, "Copy All" section, and individual copy buttons
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -31,36 +32,70 @@ HTML_TEMPLATE = """
         h1 {{ color: #58a6ff; text-align: center; }}
         .update-time {{ text-align: center; color: #8b949e; margin-bottom: 20px; }}
         .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; margin-bottom: 20px; }}
-        .btn {{ display: block; width: 100%; padding: 10px; background: #238636; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-decoration: none; text-align: center; }}
+        
+        /* Buttons */
+        .btn {{ display: block; width: 100%; padding: 10px; background: #238636; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-align: center; margin-top: 10px; }}
         .btn:hover {{ background: #2ea043; }}
+        .copy-btn {{ background: #1f6feb; font-size: 12px; padding: 5px 10px; width: auto; cursor: pointer; color: white; border: none; border-radius: 4px; }}
+        .copy-btn:hover {{ background: #388bfd; }}
+        
+        /* Table */
         table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
         th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #21262d; }}
         th {{ color: #8b949e; }}
         .latency {{ color: #3fb950; font-weight: bold; }}
-        .copy-btn {{ background: #1f6feb; font-size: 12px; padding: 5px 10px; width: auto; display: inline-block; }}
+        
+        /* Text Area */
+        textarea {{ width: 100%; height: 100px; background: #0d1117; color: #8b949e; border: 1px solid #30363d; border-radius: 6px; padding: 10px; box-sizing: border-box; font-family: monospace; font-size: 12px; resize: vertical; }}
     </style>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                prompt("Copy manually:", text);
+            });
+        }
+        
+        function copyAll() {
+            var copyText = document.getElementById("all-configs");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                alert("All configs copied!");
+            });
+        }
+    </script>
 </head>
 <body>
     <h1>🚀 Active Server Dashboard</h1>
     <div class="update-time">Last Updated: {timestamp} (UTC)</div>
 
     <div class="card">
-        <h3>📋 Quick Action</h3>
-        <p>Use this link in v2rayNG / v2rayN:</p>
-        <code style="display:block; background:#000; padding:10px; border-radius:5px; word-break:break-all;">
-            https://raw.githubusercontent.com/kopyie/v2ray-scanner/refs/heads/main/sub.txt
+        <h3>🔗 Subscription Link</h3>
+        <p>Add this URL to v2rayNG / v2rayN to auto-update:</p>
+        <code style="display:block; background:#000; padding:10px; border-radius:5px; word-break:break-all; color:#58a6ff;">
+            https://raw.githubusercontent.com/{username}/{repo}/main/sub.txt
         </code>
     </div>
 
     <div class="card">
-        <h3>✅ Top {count} Working Servers</h3>
+        <h3>📋 Batch Copy ({count} Servers)</h3>
+        <p>Copy all working codes to paste directly into your app:</p>
+        <textarea id="all-configs" readonly>{all_configs}</textarea>
+        <button class="btn" onclick="copyAll()">Copy All Configs</button>
+    </div>
+
+    <div class="card">
+        <h3>✅ Server List</h3>
         <table>
             <thead>
                 <tr>
                     <th>#</th>
                     <th>IP Address</th>
-                    <th>Port</th>
                     <th>Ping</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -79,7 +114,7 @@ def get_servers():
         try:
             resp = requests.get(url, timeout=10)
             content = resp.text.strip()
-            # Basic Base64 check
+            # Basic Base64 check: decode if it doesn't look like plain vmess:// list
             if "vmess://" not in content and len(content) > 100 and " " not in content:
                 try:
                     content = base64.b64decode(content).decode('utf-8', errors='ignore')
@@ -115,7 +150,7 @@ def main():
     # 1. Get List
     raw_lines = get_servers()
     parsed_servers = []
-    for line in raw_lines[:1500]: # Limit scan
+    for line in raw_lines[:2000]: # Limit scan candidates
         res = parse_config(line)
         if res: parsed_servers.append(res)
     
@@ -135,36 +170,44 @@ def main():
     print(f"Found {len(top_proxies)} working servers.")
 
     # 4. Generate SUB.TXT (Base64)
-    final_text = "\n".join([x[1]['config'] for x in top_proxies])
-    b64_sub = base64.b64encode(final_text.encode("utf-8")).decode("utf-8")
+    # Extract just the config strings
+    plain_configs_list = [x[1]['config'] for x in top_proxies]
+    final_text_block = "\n".join(plain_configs_list)
+    
+    b64_sub = base64.b64encode(final_text_block.encode("utf-8")).decode("utf-8")
     with open(OUTPUT_SUB, "w") as f:
         f.write(b64_sub)
 
     # 5. Generate INDEX.HTML (Dashboard)
     table_rows = ""
     for i, (lat, srv) in enumerate(top_proxies):
+        # We assume srv['config'] is a safe string (URL)
+        # Using a simple onclick handler with the string in single quotes
         table_rows += f"""
         <tr>
             <td>{i+1}</td>
             <td>{srv['ip']}</td>
-            <td>{srv['port']}</td>
             <td class="latency">{lat} ms</td>
+            <td>
+                <button class="copy-btn" onclick="copyToClipboard('{srv['config']}')">Copy</button>
+            </td>
         </tr>
         """
     
-    # Get Username/Repo from environment or placeholder
-    # NOTE: You must replace 'YOUR_USERNAME' and 'YOUR_REPO' manually below if running locally
-    # But GitHub Pages will host it at username.github.io/repo
+    # FILL YOUR GITHUB DETAILS HERE
+    my_username = "YOUR_GITHUB_USERNAME" 
+    my_repo = "YOUR_REPO_NAME"
     
     html_content = HTML_TEMPLATE.format(
         timestamp=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         count=len(top_proxies),
         table_rows=table_rows,
-        username="YOUR_GITHUB_USERNAME", # <--- CHANGE THIS later or let user handle it
-        repo="YOUR_REPO_NAME"           # <--- CHANGE THIS
+        all_configs=final_text_block,  # This injects the raw codes into the textarea
+        username=my_username,
+        repo=my_repo
     )
     
-    with open(OUTPUT_HTML, "w") as f:
+    with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
         f.write(html_content)
 
 if __name__ == "__main__":
