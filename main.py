@@ -195,8 +195,8 @@ def main():
         """
     
     # FILL YOUR GITHUB DETAILS HERE
-    my_username = "YOUR_GITHUB_USERNAME" 
-    my_repo = "YOUR_REPO_NAME"
+    my_username = "kopyie" 
+    my_repo = "v2ray-scanner"
     
     html_content = HTML_TEMPLATE.format(
         timestamp=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
